@@ -12,13 +12,11 @@ on:
         required: false
         description: name of the container image
         type: string
-      build_image:
+      check_only:
         required: false
         description: run build and push image
-        default: true
+        default: false
         type: boolean
-
-permissions: write-all
 
 jobs:
   build:
@@ -31,7 +29,7 @@ jobs:
           fetch-depth: 0
 
       - name: determine version
-        if: ${{ inputs.build_image }}
+        if: ${{ ! inputs.check_only }}
         id: version
         uses: paulhatch/semantic-version@v5.4.0
         with:
@@ -43,7 +41,7 @@ jobs:
           version_format: ${major}.${minor}.${patch}${{ github.ref_name != 'release' && '-alpha.${increment}' || '' }}
 
       - name: build alpha
-        if: ${{ inputs.build_image && github.ref_name != 'release' }}
+        if: ${{ ! inputs.check_only && github.ref_name != 'release' }}
         id: build-alpha
         uses: redhat-actions/buildah-build@v2.13
         with:
@@ -53,7 +51,7 @@ jobs:
             ${{ inputs.containerfile }}
 
       - name: build release
-        if: ${{ inputs.build_image && github.ref_name == 'release' }}
+        if: ${{ ! inputs.check_only && github.ref_name == 'release' }}
         id: build-release
         uses: redhat-actions/buildah-build@v2.13
         with:
@@ -67,7 +65,7 @@ jobs:
             ${{ inputs.containerfile }}
 
       - name: push to registry
-        if: ${{ inputs.build_image }}
+        if: ${{ ! inputs.check_only }}
         uses: redhat-actions/push-to-registry@v2.7
         with:
           image: ${{ github.ref_name == 'release' && steps.build-release.outputs.image || steps.build-alpha.outputs.image }}
