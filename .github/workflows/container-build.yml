@@ -25,9 +25,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-python@v3
-      - uses: pre-commit/action@v3.0.1
-          
       - name: determine version
         id: version
         uses: paulhatch/semantic-version@v5.4.0
