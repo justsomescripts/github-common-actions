@@ -27,6 +27,7 @@ jobs:
       - uses: actions/checkout@v4.1.4
         with:
           fetch-depth: 0
+          fetch-tags: true
 
       - name: determine version
         if: ${{ ! inputs.check_only }}
