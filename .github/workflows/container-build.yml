@@ -25,6 +25,9 @@ jobs:
         with:
           fetch-depth: 0
 
+      - uses: actions/setup-python@v3
+      - uses: pre-commit/action@v3.0.1
+          
       - name: determine version
         id: version
         uses: paulhatch/semantic-version@v5.4.0
@@ -68,3 +71,6 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: pre-commit-ci/lite-action@v1.0.2
+        if: always()
