@@ -36,8 +36,8 @@ jobs:
           tag_prefix: v
           major_pattern: '/^(feat|fix|docs|style|refactor|perf|test|chore)(\([a-z ]+\))?!: (.|\n)*$/'
           minor_pattern: '/^(feat)(\([a-z ]+\))?: (.|\n)*$/'
-          # bump_each_commit: true
-          # bump_each_commit_patch_pattern: '/^(fix|refactor|perf)(\([a-z ]+\))?: (.|\n)*$/'
+          bump_each_commit: true
+          bump_each_commit_patch_pattern: '/^(fix|refactor|perf)(\([a-z ]+\))?: (.|\n)*$/'
           version_format: ${major}.${minor}.${patch}${{ github.ref_name != 'release' && '-alpha.${increment}' || '' }}
 
       - name: build alpha
