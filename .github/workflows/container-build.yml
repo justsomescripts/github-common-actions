@@ -12,6 +12,11 @@ on:
         required: false
         description: name of the container image
         type: string
+      build_image:
+        required: false
+        description: run build and push image
+        default: true
+        type: boolean
 
 permissions: write-all
 
@@ -26,6 +31,7 @@ jobs:
           fetch-depth: 0
 
       - name: determine version
+        if: ${{ inputs.build_image }}
         id: version
         uses: paulhatch/semantic-version@v5.4.0
         with:
@@ -37,7 +43,7 @@ jobs:
           version_format: ${major}.${minor}.${patch}${{ github.ref_name != 'release' && '-alpha.${increment}' || '' }}
 
       - name: build alpha
-        if: github.ref_name != 'release'
+        if: ${{ inputs.build_image && github.ref_name != 'release' }}
         id: build-alpha
         uses: redhat-actions/buildah-build@v2.13
         with:
@@ -47,7 +53,7 @@ jobs:
             ${{ inputs.containerfile }}
 
       - name: build release
-        if: github.ref_name == 'release'
+        if: ${{ inputs.build_image && github.ref_name == 'release' }}
         id: build-release
         uses: redhat-actions/buildah-build@v2.13
         with:
@@ -61,6 +67,7 @@ jobs:
             ${{ inputs.containerfile }}
 
       - name: push to registry
+        if: ${{ inputs.build_image }}
         uses: redhat-actions/push-to-registry@v2.7
         with:
           image: ${{ github.ref_name == 'release' && steps.build-release.outputs.image || steps.build-alpha.outputs.image }}
@@ -68,3 +75,6 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: pre-commit-ci/lite-action@v1.0.2
+        if: always()
