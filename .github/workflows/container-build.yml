@@ -18,8 +18,6 @@ on:
         default: true
         type: boolean
 
-permissions: write-all
-
 jobs:
   build:
     name: build and push image
