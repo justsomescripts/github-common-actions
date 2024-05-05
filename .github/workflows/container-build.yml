@@ -17,6 +17,11 @@ on:
         description: run build and push image
         default: false
         type: boolean
+      release_branch:
+        required: false
+        description: name of the release branch
+        default: release
+        type: string
 
 jobs:
   build:
@@ -42,20 +47,19 @@ jobs:
           version_format: ${major}.${minor}.${patch}  
 
       - name: build alpha
-        if: ${{ ! inputs.check_only && github.ref_name != 'release' }}
+        if: ${{ ! inputs.check_only && github.ref_name != inputs.release_branch }}
         id: build-alpha
         uses: redhat-actions/buildah-build@v2.13
         with:
           image: ${{ inputs.imagename || github.repository }}
           tags: >
             latest-alpha
-            v${{ steps.version.outputs.version }}-alpha
             v${{ steps.version.outputs.version }}-alpha.${{ steps.version.outputs.increment }}
           containerfiles: |
             ${{ inputs.containerfile }}
 
       - name: build release
-        if: ${{ ! inputs.check_only && github.ref_name == 'release' }}
+        if: ${{ ! inputs.check_only && github.ref_name == inputs.release_branch }}
         id: build-release
         uses: redhat-actions/buildah-build@v2.13
         with:
@@ -68,12 +72,27 @@ jobs:
           containerfiles: |
             ${{ inputs.containerfile }}
 
+      - name: Create release
+        if: ${{ ! inputs.check_only && github.ref_name == inputs.release_branch }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: v${{ steps.version.outputs.version }}
+          RELEASE_BRANCH: ${{ inputs.release_branch }}
+        run: |
+          gh release create "$tag" \
+            --draft \
+            --latest \
+            --target "$RELEASE_BRANCH" \
+            --repo="$GITHUB_REPOSITORY" \
+            --title=$RELEASE_TAG" \
+            --generate-notes
+
       - name: push to registry
         if: ${{ ! inputs.check_only }}
         uses: redhat-actions/push-to-registry@v2.7
         with:
-          image: ${{ github.ref_name == 'release' && steps.build-release.outputs.image || steps.build-alpha.outputs.image }}
-          tags: ${{ github.ref_name == 'release' && steps.build-release.outputs.tags || steps.build-alpha.outputs.tags }}
+          image: ${{ github.ref_name == inputs.release_branch && steps.build-release.outputs.image || steps.build-alpha.outputs.image }}
+          tags: ${{ github.ref_name == inputs.release_branch && steps.build-release.outputs.tags || steps.build-alpha.outputs.tags }}
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
