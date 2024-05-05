@@ -4,9 +4,9 @@ on:
   workflow_call:
     inputs:
       containerfile:
-        required: true
+        required: false
         description: path to the container file
-        default: ./Containerfile
+        default: ./Dockerfile
         type: string
       imagename:
         required: false
