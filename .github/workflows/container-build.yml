@@ -1,0 +1,70 @@
+name: Build Container Image
+
+on:
+  workflow_call:
+    inputs:
+      containerfile:
+        required: true
+        description: path to the container file
+        default: ./Containerfile
+        type: string
+      imagename:
+        required: false
+        description: name of the container image
+        type: string
+
+permissions: write-all
+
+jobs:
+  build:
+    name: build and push image
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4.1.4
+        with:
+          fetch-depth: 0
+
+      - name: determine version
+        id: version
+        uses: paulhatch/semantic-version@v5.4.0
+        with:
+          tag_prefix: v
+          major_pattern: '/^(feat|fix|docs|style|refactor|perf|test|chore)(\([a-z ]+\))?!: (.|\n)*$/'
+          minor_pattern: '/^(feat)(\([a-z ]+\))?: (.|\n)*$/'
+          bump_each_commit: true
+          bump_each_commit_patch_pattern: '/^(fix|refactor|perf)(\([a-z ]+\))?: (.|\n)*$/'
+          version_format: ${major}.${minor}.${patch}${{ github.ref_name != 'release' && '-alpha.${increment}' || '' }}
+
+      - name: build alpha
+        if: github.ref_name != 'release'
+        id: build-alpha
+        uses: redhat-actions/buildah-build@v2.13
+        with:
+          image: ${{ inputs.imagename || github.repository }}
+          tags: v${{ steps.version.outputs.version }}
+          containerfiles: |
+            ${{ inputs.containerfile }}
+
+      - name: build release
+        if: github.ref_name == 'release'
+        id: build-release
+        uses: redhat-actions/buildah-build@v2.13
+        with:
+          image: ${{ inputs.imagename || github.repository }}
+          tags: >
+            latest
+            v${{ steps.version.outputs.version }}
+            v${{ steps.version.outputs.major }}.${{ steps.version.outputs.minor }}
+            v${{ steps.version.outputs.major }}
+          containerfiles: |
+            ${{ inputs.containerfile }}
+
+      - name: push to registry
+        uses: redhat-actions/push-to-registry@v2.7
+        with:
+          image: ${{ github.ref_name == 'release' && steps.build-release.outputs.image || steps.build-alpha.outputs.image }}
+          tags: ${{ github.ref_name == 'release' && steps.build-release.outputs.tags || steps.build-alpha.outputs.tags }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
