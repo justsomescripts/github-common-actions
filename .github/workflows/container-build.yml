@@ -20,7 +20,7 @@ on:
       release_branch:
         required: false
         description: name of the release branch
-        default: release
+        default: main
         type: string
 
 jobs:
