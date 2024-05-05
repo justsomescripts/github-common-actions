@@ -72,6 +72,19 @@ jobs:
           containerfiles: |
             ${{ inputs.containerfile }}
 
+      - uses: pre-commit-ci/lite-action@v1.0.2
+        if: always()
+
+      - name: push to registry
+        if: ${{ ! inputs.check_only }}
+        uses: redhat-actions/push-to-registry@v2.7
+        with:
+          image: ${{ github.ref_name == inputs.release_branch && steps.build-release.outputs.image || steps.build-alpha.outputs.image }}
+          tags: ${{ github.ref_name == inputs.release_branch && steps.build-release.outputs.tags || steps.build-alpha.outputs.tags }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Create release
         if: ${{ ! inputs.check_only && github.ref_name == inputs.release_branch }}
         env:
@@ -84,18 +97,6 @@ jobs:
             --latest \
             --target "$RELEASE_BRANCH" \
             --repo="$GITHUB_REPOSITORY" \
-            --title=$RELEASE_TAG" \
+            --title="$RELEASE_TAG" \
             --generate-notes
 
-      - name: push to registry
-        if: ${{ ! inputs.check_only }}
-        uses: redhat-actions/push-to-registry@v2.7
-        with:
-          image: ${{ github.ref_name == inputs.release_branch && steps.build-release.outputs.image || steps.build-alpha.outputs.image }}
-          tags: ${{ github.ref_name == inputs.release_branch && steps.build-release.outputs.tags || steps.build-alpha.outputs.tags }}
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - uses: pre-commit-ci/lite-action@v1.0.2
-        if: always()
