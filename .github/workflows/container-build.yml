@@ -28,8 +28,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: determine version
-        if: ${{ ! inputs.check_only && github.ref_name != 'release' }}
+      - name: determine release version
+        if: ${{ ! inputs.check_only && github.ref_name == 'release' }}
         id: version
         uses: paulhatch/semantic-version@v5.4.0
         with:
@@ -38,7 +38,7 @@ jobs:
           minor_pattern: '/^(feat)(\([a-z ]+\))?: (.|\n)*$/'
           bump_each_commit: true
           bump_each_commit_patch_pattern: '/^(fix|refactor|perf)(\([a-z ]+\))?: (.|\n)*$/'
-          version_format: ${major}.${minor}.${patch}-alpha.${increment}
+          version_format: ${major}.${minor}.${patch}  
 
       - name: build alpha
         if: ${{ ! inputs.check_only && github.ref_name != 'release' }}
@@ -48,22 +48,10 @@ jobs:
           image: ${{ inputs.imagename || github.repository }}
           tags: >
             latest-alpha
-            v${{ steps.version.outputs.version }}
+            v${{ steps.version.outputs.version }}-alpha
+            v${{ steps.version.outputs.version }}-alpha.${{ steps.version.outputs.increment }}
           containerfiles: |
             ${{ inputs.containerfile }}
-
-      - name: determine release version
-        if: ${{ ! inputs.check_only && github.ref_name == 'release' }}
-        id: release-version
-        uses: paulhatch/semantic-version@v5.4.0
-        with:
-          tag_prefix: v
-          major_pattern: '/^(feat|fix|docs|style|refactor|perf|test|chore)(\([a-z ]+\))?!: (.|\n)*$/'
-          minor_pattern: '/^(feat)(\([a-z ]+\))?: (.|\n)*$/'
-          bump_each_commit: true
-          bump_each_commit_patch_pattern: '/^(fix|refactor|perf)(\([a-z ]+\))?: (.|\n)*$/'
-          version_format: ${major}.${minor}.${patch}
-
 
       - name: build release
         if: ${{ ! inputs.check_only && github.ref_name == 'release' }}
