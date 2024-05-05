@@ -92,7 +92,7 @@ jobs:
           RELEASE_TAG: v${{ steps.version.outputs.version }}
           RELEASE_BRANCH: ${{ inputs.release_branch }}
         run: |
-          gh release create "$tag" \
+          gh release create "RELEASE_TAG" \
             --draft \
             --latest \
             --target "$RELEASE_BRANCH" \
