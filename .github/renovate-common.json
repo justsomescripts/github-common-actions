@@ -2,8 +2,7 @@
   "gitAuthor": "renovate <infra@dgries.de>",
   "rebaseWhen": "conflicted",
   "labels": ["dependencies"],
-  "automergeStrategy": "merge-commit",
-  "asignees": ["justsomescripts"],
+  "assignees": ["justsomescripts"],
   "extends": [
       "config:recommended",
       "docker:pinDigests",
