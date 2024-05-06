@@ -77,7 +77,7 @@ jobs:
 
       - name: push to registry
         if: ${{ ! inputs.check_only }}
-        uses: redhat-actions/push-to-registry@v2.7
+        uses: redhat-actions/push-to-registry@v2.8
         with:
           image: ${{ github.ref_name == inputs.release_branch && steps.build-release.outputs.image || steps.build-alpha.outputs.image }}
           tags: ${{ github.ref_name == inputs.release_branch && steps.build-release.outputs.tags || steps.build-alpha.outputs.tags }}
