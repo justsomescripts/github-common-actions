@@ -1,0 +1,31 @@
+{
+  "gitAuthor": "renovate <infra@dgries.de>",
+  "rebaseWhen": "conflicted",
+  "labels": ["dependencies"],
+  "automergeStrategy": "merge-commit",
+  "asignees": ["justsomescripts"],
+  "extends": [
+      "config:recommended",
+      "docker:pinDigests",
+      "schedule:daily",
+      ":rebaseStalePrs"
+  ],
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["minor", "patch", "digest"],
+      "automerge": true
+    },
+    {
+      "matchUpdateTypes": ["major"],
+      "labels": ["major", "dependencies"]
+    },
+    {
+      "matchUpdateTypes": ["minor"],
+      "labels": ["minor", "dependencies"]
+    },
+    {
+      "matchUpdateTypes": ["patch"],
+      "labels": ["patch", "dependencies"]
+    }
+  ]
+}
