@@ -40,7 +40,7 @@ jobs:
           minor_pattern: '/^(feat)(\([a-z ]+\))?: (.|\n)*$/'
           bump_each_commit: true
           bump_each_commit_patch_pattern: '/^(fix|refactor|perf)(\([a-z ]+\))?: (.|\n)*$/'
-          version_format: ${major}.${minor}.${patch}-alpha.${increment}
+          version_format: ${major}.${minor}.${patch}
 
       - name: extract base image tag
         id: base
