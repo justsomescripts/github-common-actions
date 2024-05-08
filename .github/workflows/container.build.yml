@@ -89,9 +89,16 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
+      - name: prepare release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ steps.version.outputs.version }}
+          generate_release_notes: true
+
       - name: create release
         uses: softprops/action-gh-release@v2
         with:
+          name: ${{ steps.version.outputs.version }}
           draft: true
           body: |
 
@@ -99,7 +106,5 @@ jobs:
             The image can be downloaded from ghcr.io
             `docker pull ghcr.io/ghcr.io/${{ inputs.imagename || github.repository }}:${{ steps.version.outputs.major }}.${{ steps.version.outputs.minor }}.${{ steps.version.outputs.patch }}`
 
-            https://github.com/${{ inputs.imagename || github.repository }}/pkgs/container/${{ github.event.client_payload.package_name }}/${{ github.event.client_payload.package_version_id }}?tag=${{ steps.version.outputs.major }}.${{ steps.version.outputs.minor }}.${{ steps.version.outputs.patch }}
-          generate_release_notes: true
+            https://github.com/justsomescripts/ansible-ee-alpine/pkgs/container/ansible-ee-alpine
           append_body: true
-          
