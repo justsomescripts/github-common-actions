@@ -59,16 +59,16 @@ jobs:
         with:
           images: name=ghcr.io/${{ inputs.imagename || github.repository }}
           tags: |
-            type=semver,pattern={{major}},enable=${{ !startsWith(steps.version.outputs.version, 'v0.') }},value=${{ steps.version.outputs.version }}
+            type=semver,pattern={{major}},enable=${{ !startsWith(steps.version.outputs.version, '0') }},value=${{ steps.version.outputs.version }}
             type=semver,pattern={{major}}.{{minor}},value=${{ steps.version.outputs.version }}
             type=semver,pattern={{major}}.{{minor}}.{{patch}},value=${{ steps.version.outputs.version }}
-            type=semver,pattern={{major}}-${{ steps.base.outputs.base_tag_version }},enable=${{ !startsWith(steps.version.outputs.version, 'v0.') }},value=${{ steps.version.outputs.version }}
+            type=semver,pattern={{major}}-${{ steps.base.outputs.base_tag_version }},enable=${{ !startsWith(steps.version.outputs.version, '0') }},value=${{ steps.version.outputs.version }}
             type=semver,pattern={{major}}.{{minor}}-${{ steps.base.outputs.base_tag_version }},value=${{ steps.version.outputs.version }}
             type=semver,pattern={{major}}.{{minor}}.{{patch}}-${{ steps.base.outputs.base_tag_version }},value=${{ steps.version.outputs.version }}
-            type=semver,pattern={{major}}-${{ steps.base.outputs.base_tag_major }},enable=${{ !startsWith(steps.version.outputs.version, 'v0.') }},value=${{ steps.version.outputs.version }}
+            type=semver,pattern={{major}}-${{ steps.base.outputs.base_tag_major }},enable=${{ !startsWith(steps.version.outputs.version, '0') }},value=${{ steps.version.outputs.version }}
             type=semver,pattern={{major}}.{{minor}}-${{ steps.base.outputs.base_tag_major }},value=${{ steps.version.outputs.version }}
             type=semver,pattern={{major}}.{{minor}}.{{patch}}-${{ steps.base.outputs.base_tag_major }},value=${{ steps.version.outputs.version }}
-            type=semver,pattern={{major}}-${{ steps.base.outputs.base_tag }},enable=${{ !startsWith(steps.version.outputs.version, 'v0.') }},value=${{ steps.version.outputs.version }}
+            type=semver,pattern={{major}}-${{ steps.base.outputs.base_tag }},enable=${{ !startsWith(steps.version.outputs.version, '0') }},value=${{ steps.version.outputs.version }}
             type=semver,pattern={{major}}.{{minor}}-${{ steps.base.outputs.base_tag }},value=${{ steps.version.outputs.version }}
             type=semver,pattern={{major}}.{{minor}}.{{patch}}-${{ steps.base.outputs.base_tag }},value=${{ steps.version.outputs.version }}
             type=sha
