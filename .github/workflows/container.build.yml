@@ -92,13 +92,18 @@ jobs:
       - name: prepare release
         uses: softprops/action-gh-release@v2
         with:
-          name: ${{ steps.version.outputs.version }}
+          name: v${{ steps.version.outputs.version }}
+          tag_name: v${{ steps.version.outputs.version }}
+          prerelease: false
+          draft: true
           generate_release_notes: true
 
       - name: create release
         uses: softprops/action-gh-release@v2
         with:
-          name: ${{ steps.version.outputs.version }}
+          name: v${{ steps.version.outputs.version }}
+          tag_name: v${{ steps.version.outputs.version }}
+          prerelease: false
           draft: true
           body: |
 
