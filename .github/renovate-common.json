@@ -1,12 +1,16 @@
 {
   "gitAuthor": "renovate <infra@dgries.de>",
   "rebaseWhen": "conflicted",
+  "semanticCommits": "enabled",
+  "dependencyDashboard": true,
+  "dependencyDashboardTitle": "⚙ Dependency Dashboard",
   "labels": ["dependencies"],
   "assignees": ["justsomescripts"],
   "extends": [
+      "schedule:daily",
       "config:recommended",
       "docker:pinDigests",
-      "schedule:daily",
+      "helpers:pinGitHubActionDigests",
       ":rebaseStalePrs"
   ],
   "packageRules": [
