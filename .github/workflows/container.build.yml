@@ -17,11 +17,11 @@ on:
         description: name of the release branch
         default: main
         type: string
-      sign_images:
+      enable_cosign:
         required: false
         description: sign images using cosign
-        default: true
-        type: boolean
+        default: 'true'
+        type: string
 
 jobs:
   build:
@@ -38,7 +38,7 @@ jobs:
 
       - name: set up cosign
         uses: sigstore/cosign-installer@v3.5.0
-        if: ${{ github.event.inputs.sign_images }} == true
+        if: ${{ github.event.inputs.enable_cosign == 'true' }}
 
       - name: determine version
         id: version
@@ -147,7 +147,7 @@ jobs:
         env:
           COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
-        if: ${{ github.event.inputs.sign_images }} == true
+        if: ${{ github.event.inputs.enable_cosign == 'true' }}
 
       - name: update readme on docker hub
         uses: peter-evans/dockerhub-description@v3
