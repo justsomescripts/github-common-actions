@@ -72,6 +72,8 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}-${{ steps.base.outputs.base_tag_major }},value=${{ steps.version.outputs.version }}
             type=semver,pattern={{major}}.{{minor}}.{{patch}}-${{ steps.base.outputs.base_tag_major }},value=${{ steps.version.outputs.version }}
             type=semver,pattern={{major}}-${{ steps.base.outputs.base_tag }},enable=${{ !startsWith(steps.version.outputs.version, '0') }},value=${{ steps.version.outputs.version }}
+            type=semver,pattern={{major}}.{{minor}}-${{ steps.base.outputs.base_tag }},value=${{ steps.version.outputs.version }}
+            type=semver,pattern={{major}}.{{minor}}.{{patch}}-${{ steps.base.outputs.base_tag }},value=${{ steps.version.outputs.version }}
           flavor: latest=auto
 
       - name: login to ghcr
