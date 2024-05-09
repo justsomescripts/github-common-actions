@@ -36,6 +36,10 @@ jobs:
       - name: set up docker
         uses: docker/setup-buildx-action@d70bba72b1f3fd22344832f00baa16ece964efeb # v3
 
+      - name: set up cosign
+        uses: sigstore/cosign-installer@v3.5.0
+        if: ${{ github.event.inputs.sign_images }}
+
       - name: determine version
         id: version
         uses: paulhatch/semantic-version@a8f8f59fd7f0625188492e945240f12d7ad2dca3 # v5.4.0
@@ -109,8 +113,10 @@ jobs:
           file: ${{ inputs.containerfile }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-      - name: Sign image with a key
+      - name: sign container image
         run: |
           cosign sign --recursive --yes --key env://COSIGN_PRIVATE_KEY ghcr.io/${{ inputs.imagename || github.repository }}:latest
           cosign sign --recursive --yes --key env://COSIGN_PRIVATE_KEY name=quay.io/${{ inputs.imagename || github.repository }}:latest
@@ -118,6 +124,7 @@ jobs:
         env:
           COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+        if: ${{ github.event.inputs.sign_images }}
 
       - name: update readme on docker hub
         uses: peter-evans/dockerhub-description@v3
