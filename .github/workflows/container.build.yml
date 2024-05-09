@@ -46,9 +46,9 @@ jobs:
         id: base
         run: |
           base=$(awk '/^FROM/ { image = $2 } END { print image }' ${{ inputs.containerfile }})
-          base_tag_version=$(echo $base | awk -F: '{ print $NF }')
-          base_tag_major=$(echo $base | awk -F: '{ print $NF }' | awk -F'.' ' { print $1 }')
-          base_tag=$(echo $base | awk -F: '{ print $NF }' | awk -F'[0-9]' '{ print $1 }')
+          base_tag_version=$(echo $base | sed 's/^[^:]*:\([^@]*\).*/\1/')
+          base_tag_major=$(echo $base_tag_version | awk -F'.' ' { print $1 }')
+          base_tag=$(echo $base_tag_version | awk -F'[0-9]' '{ print $1 }')
           echo "base_tag_version=$base_tag_version" >> $GITHUB_OUTPUT
           echo "base_tag_major=$base_tag_major" >> $GITHUB_OUTPUT
           echo "base_tag=$base_tag" >> $GITHUB_OUTPUT
