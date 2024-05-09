@@ -17,6 +17,11 @@ on:
         description: name of the release branch
         default: main
         type: string
+      sign_images:
+        required: false
+        description: sign images using cosign
+        default: true
+        type: boolean
 
 jobs:
   build:
@@ -104,6 +109,15 @@ jobs:
           file: ${{ inputs.containerfile }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Sign image with a key
+        run: |
+          cosign sign --recursive --yes --key env://COSIGN_PRIVATE_KEY ghcr.io/${{ inputs.imagename || github.repository }}:latest
+          cosign sign --recursive --yes --key env://COSIGN_PRIVATE_KEY name=quay.io/${{ inputs.imagename || github.repository }}:latest
+          cosign sign --recursive --yes --key env://COSIGN_PRIVATE_KEY ${{ inputs.imagename || github.repository }}:latest
+        env:
+          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
 
       - name: update readme on docker hub
         uses: peter-evans/dockerhub-description@v3
