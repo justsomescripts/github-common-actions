@@ -82,7 +82,7 @@ jobs:
           echo "base_tag_major=$base_tag_major" >> $GITHUB_OUTPUT
           echo "base_tag=$base_tag" >> $GITHUB_OUTPUT
 
-      - name: Generate docker metadata
+      - name: Generate container metadata
         id: meta
         uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5
         with:
