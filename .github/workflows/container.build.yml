@@ -87,9 +87,9 @@ jobs:
         uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5
         with:
           images: |
-            name=ghcr.io/${{ inputs.imagename || github.repository }},enabled=${{ github.event.inputs.push_ghcr == 'true' }}
-            name=${{ inputs.imagename || github.repository }},enabled=${{ github.event.inputs.push_dockerhub == 'true' }}
-            name=quay.io/${{ inputs.imagename || github.repository }},enabled=${{ github.event.inputs.push_quay == 'true' }}
+            name=ghcr.io/${{ inputs.imagename || github.repository }},enable=${{ github.event.inputs.push_ghcr == 'true' }}
+            name=${{ inputs.imagename || github.repository }},enable=${{ github.event.inputs.push_dockerhub == 'true' }}
+            name=quay.io/${{ inputs.imagename || github.repository }},enable=${{ github.event.inputs.push_quay == 'true' }}
           tags: |
             type=semver,pattern={{major}},enable=${{ !startsWith(steps.version.outputs.version, '0') }},value=${{ steps.version.outputs.version }}
             type=semver,pattern={{major}}.{{minor}},value=${{ steps.version.outputs.version }}
