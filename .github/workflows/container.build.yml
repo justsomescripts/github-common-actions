@@ -5,27 +5,47 @@ on:
     inputs:
       containerfile:
         required: false
-        description: path to the container file
+        description: Path to the container file
         default: Dockerfile
         type: string
       imagename:
         required: false
-        description: name of the container image
+        description: Name of the container image
         type: string
       release_branch:
         required: false
-        description: name of the release branch
+        description: Name of the release branch
         default: main
         type: string
       enable_cosign:
         required: false
-        description: sign images using cosign
+        description: Sign images using cosign
         default: 'true'
+        type: string
+      enable_trivy:
+        required: false
+        description: Scan image for vulnerabilities using trivy
+        default: 'true'
+        type: string
+      push_ghcr:
+        required: false
+        description: Push image to ghcr
+        default: 'true'
+        type: string
+      push_dockerhub:
+        required: false
+        description: Push image to dockerhub
+        default: 'false'
+        type: string
+      push_quay:
+        required: false
+        description: Push image to quay
+        default: 'false'
         type: string
 
 jobs:
   build:
-    name: build and push image
+    name: Build and push image
     runs-on: ubuntu-latest
 
     steps:
@@ -33,14 +53,14 @@ jobs:
         with:
           fetch-depth: 0
     
-      - name: set up docker
+      - name: Set up docker
         uses: docker/setup-buildx-action@d70bba72b1f3fd22344832f00baa16ece964efeb # v3
 
-      - name: set up cosign
+      - name: Set up cosign
         uses: sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20 # v3.5.0
         if: ${{ github.event.inputs.enable_cosign == 'true' }}
 
-      - name: determine version
+      - name: Determine version
         id: version
         uses: paulhatch/semantic-version@a8f8f59fd7f0625188492e945240f12d7ad2dca3 # v5.4.0
         with:
@@ -51,7 +71,7 @@ jobs:
           bump_each_commit_patch_pattern: '/^(fix|refactor|perf)(\([a-z ]+\))?: (.|\n)*$/'
           version_format: ${major}.${minor}.${patch}
 
-      - name: extract base image tag
+      - name: Extract base image tag
         id: base
         run: |
           base=$(awk '/^FROM/ { image = $2 } END { print image }' ${{ inputs.containerfile }})
@@ -62,14 +82,14 @@ jobs:
           echo "base_tag_major=$base_tag_major" >> $GITHUB_OUTPUT
           echo "base_tag=$base_tag" >> $GITHUB_OUTPUT
 
-      - name: generate docker metadata
+      - name: Generate docker metadata
         id: meta
         uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5
         with:
           images: |
-            name=ghcr.io/${{ inputs.imagename || github.repository }}
-            name=quay.io/${{ inputs.imagename || github.repository }}
-            name=${{ inputs.imagename || github.repository }}
+            name=ghcr.io/${{ inputs.imagename || github.repository }},enabled=${{ github.event.inputs.push_ghcr == 'true' }}
+            name=${{ inputs.imagename || github.repository }},enabled=${{ github.event.inputs.push_dockerhub == 'true' }}
+            name=quay.io/${{ inputs.imagename || github.repository }},enabled=${{ github.event.inputs.push_quay == 'true' }}
           tags: |
             type=semver,pattern={{major}},enable=${{ !startsWith(steps.version.outputs.version, '0') }},value=${{ steps.version.outputs.version }}
             type=semver,pattern={{major}}.{{minor}},value=${{ steps.version.outputs.version }}
@@ -85,27 +105,30 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}.{{patch}}-${{ steps.base.outputs.base_tag }},value=${{ steps.version.outputs.version }}
           flavor: latest=auto
 
-      - name: login to ghcr
+      - name: Login to ghcr
         uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20 # v3
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: login to quay
-        uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20 # v3
-        with:
-          registry: quay.io
-          username: ${{ secrets.QUAY_USERNAME }}
-          password: ${{ secrets.QUAY_TOKEN }}
+        if: ${{ github.event.inputs.push_dockerhub == 'true' }}
 
       - name: login to docker hub
         uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20 # v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+        if: ${{ github.event.inputs.push_dockerhub == 'true' }}
   
-      - name: tag and push image
+      - name: Login to quay
+        uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20 # v3
+        with:
+          registry: quay.io
+          username: ${{ secrets.QUAY_USERNAME }}
+          password: ${{ secrets.QUAY_TOKEN }}
+        if: ${{ github.event.inputs.push_quay == 'true' }}
+
+      - name: Tag and push image
         uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0 # v5
         with:
           push: true
@@ -116,30 +139,32 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-
-      - name: scan for vulnerabilities
-        uses: aquasecurity/trivy-action@master
+      - name: Scan for vulnerabilities
+        uses: aquasecurity/trivy-action@0.20.0
         with:
           ignore-unfixed: true
           image-ref: ${{ inputs.imagename || github.repository }}:latest
           format: sarif
           output: trivy-results.sarif
+        if: ${{ github.event.inputs.enable_trivy == 'true' }}
   
-      - name: generate sbom dependency graph
-        uses: aquasecurity/trivy-action@master
+      - name: Generate sbom dependency graph
+        uses: aquasecurity/trivy-action@0.20.0
         with:
           ignore-unfixed: true
           image-ref: ${{ inputs.imagename || github.repository }}:latest
           format: github
           output: dependency-results.sbom.json
           github-pat: ${{ secrets.GITHUB_TOKEN }} 
+        if: ${{ github.event.inputs.enable_trivy == 'true' }}
 
-      - name: upload scan to security tab
+      - name: Upload scan to security tab
         uses: github/codeql-action/upload-sarif@ccf74c947955fd1cf117aef6a0e4e66191ef6f61 # v3
         with:
-          sarif_file: 'trivy-results.sarif'
+          sarif_file: trivy-results.sarif
+        if: ${{ github.event.inputs.enable_trivy == 'true' }}
 
-      - name: sign container image
+      - name: Sign container image
         run: |
           cosign sign --recursive --yes --key env://COSIGN_PRIVATE_KEY ghcr.io/${{ inputs.imagename || github.repository }}:latest
           cosign sign --recursive --yes --key env://COSIGN_PRIVATE_KEY quay.io/${{ inputs.imagename || github.repository }}:latest
@@ -149,14 +174,14 @@ jobs:
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
         if: ${{ github.event.inputs.enable_cosign == 'true' }}
 
-      - name: update readme on docker hub
+      - name: Update readme on docker hub
         uses: peter-evans/dockerhub-description@e98e4d1628a5f3be2be7c231e50981aee98723ae # v4
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           repository: ${{ inputs.imagename || github.repository }}
 
-      - name: create release
+      - name: Create release
         uses: softprops/action-gh-release@69320dbe05506a9a39fc8ae11030b214ec2d1f87 # v2
         with:
           name: v${{ steps.version.outputs.version }}
