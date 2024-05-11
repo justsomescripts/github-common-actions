@@ -140,7 +140,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Scan for vulnerabilities
-        uses: aquasecurity/trivy-action@0.20.0
+        uses: aquasecurity/trivy-action@b2933f565dbc598b29947660e66259e3c7bc8561 # 0.20.0
         with:
           ignore-unfixed: true
           image-ref: ${{ inputs.imagename || github.repository }}:latest
@@ -149,7 +149,7 @@ jobs:
         if: ${{ github.event.inputs.enable_trivy == 'true' }}
   
       - name: Generate sbom dependency graph
-        uses: aquasecurity/trivy-action@0.20.0
+        uses: aquasecurity/trivy-action@b2933f565dbc598b29947660e66259e3c7bc8561 # 0.20.0
         with:
           ignore-unfixed: true
           image-ref: ${{ inputs.imagename || github.repository }}:latest
