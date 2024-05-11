@@ -20,28 +20,28 @@ on:
       enable_cosign:
         required: false
         description: Sign images using cosign
-        default: 'true'
-        type: string
+        default: true
+        type: boolean
       enable_trivy:
         required: false
         description: Scan image for vulnerabilities using trivy
-        default: 'true'
-        type: string
+        default: true
+        type: boolean
       push_ghcr:
         required: false
         description: Push image to ghcr
-        default: 'true'
-        type: string
+        default: true
+        type: boolean
       push_dockerhub:
         required: false
         description: Push image to dockerhub
-        default: 'false'
-        type: string
+        default: false
+        type: boolean
       push_quay:
         required: false
         description: Push image to quay
-        default: 'false'
-        type: string
+        default: false
+        type: boolean
 
 jobs:
   build:
