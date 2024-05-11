@@ -58,7 +58,7 @@ jobs:
 
       - name: Set up cosign
         uses: sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20 # v3.5.0
-        if: ${{ github.event.inputs.enable_cosign }}
+        if: ${{ inputs.enable_cosign }}
 
       - name: Determine version
         id: version
@@ -87,9 +87,9 @@ jobs:
         uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5
         with:
           images: |
-            name=ghcr.io/${{ inputs.imagename || github.repository }},enable=${{ github.event.inputs.push_ghcr }}
-            name=${{ inputs.imagename || github.repository }},enable=${{ github.event.inputs.push_dockerhub }}
-            name=quay.io/${{ inputs.imagename || github.repository }},enable=${{ github.event.inputs.push_quay }}
+            name=ghcr.io/${{ inputs.imagename || github.repository }},enable=${{ inputs.push_ghcr }}
+            name=${{ inputs.imagename || github.repository }},enable=${{ inputs.push_dockerhub }}
+            name=quay.io/${{ inputs.imagename || github.repository }},enable=${{ inputs.push_quay }}
           tags: |
             type=semver,pattern={{major}},enable=${{ !startsWith(steps.version.outputs.version, '0') }},value=${{ steps.version.outputs.version }}
             type=semver,pattern={{major}}.{{minor}},value=${{ steps.version.outputs.version }}
@@ -111,14 +111,14 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
-        if: ${{ github.event.inputs.push_ghcr }}
+        if: ${{ inputs.push_ghcr }}
 
       - name: Login to docker hub
         uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20 # v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-        if: ${{ github.event.inputs.push_dockerhub }}
+        if: ${{ inputs.push_dockerhub }}
   
       - name: Login to quay
         uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20 # v3
@@ -126,7 +126,7 @@ jobs:
           registry: quay.io
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_TOKEN }}
-        if: ${{ github.event.inputs.push_quay }}
+        if: ${{ inputs.push_quay }}
 
       - name: Tag and push image
         uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0 # v5
@@ -146,7 +146,7 @@ jobs:
           image-ref: ${{ inputs.imagename || github.repository }}:latest
           format: sarif
           output: trivy-results.sarif
-        if: ${{ github.event.inputs.enable_trivy }}
+        if: ${{ inputs.enable_trivy }}
   
       - name: Generate sbom dependency graph
         uses: aquasecurity/trivy-action@b2933f565dbc598b29947660e66259e3c7bc8561 # 0.20.0
@@ -156,13 +156,13 @@ jobs:
           format: github
           output: dependency-results.sbom.json
           github-pat: ${{ secrets.GITHUB_TOKEN }} 
-        if: ${{ github.event.inputs.enable_trivy }}
+        if: ${{ inputs.enable_trivy }}
 
       - name: Upload scan to security tab
         uses: github/codeql-action/upload-sarif@ccf74c947955fd1cf117aef6a0e4e66191ef6f61 # v3
         with:
           sarif_file: trivy-results.sarif
-        if: ${{ github.event.inputs.enable_trivy }}
+        if: ${{ inputs.enable_trivy }}
 
       - name: Sign container image
         run: |
@@ -172,7 +172,7 @@ jobs:
         env:
           COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
-        if: ${{ github.event.inputs.enable_cosign }}
+        if: ${{ inputs.enable_cosign }}
 
       - name: Update readme on docker hub
         uses: peter-evans/dockerhub-description@e98e4d1628a5f3be2be7c231e50981aee98723ae # v4
